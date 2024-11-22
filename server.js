@@ -1,0 +1,60 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// Add the new route for advanced forecast calculations
+app.post('/api/advanced-forecast', (req, res) => {
+    const { q1, q2, q3, q4 } = req.body;
+
+    // Convert inputs to numbers
+    const quarterlySales = [q1, q2, q3, q4].map(Number);
+
+    // Step 1: Calculate the average growth rate
+    const growthRates = [];
+    for (let i = 1; i < quarterlySales.length; i++) {
+        const growth = (quarterlySales[i] - quarterlySales[i - 1]) / quarterlySales[i - 1] * 100;
+        growthRates.push(growth);
+    }
+    const avgGrowthRate = growthRates.reduce((sum, rate) => sum + rate, 0) / growthRates.length;
+
+    // Step 2: Calculate total sales for the year
+    const totalSales = quarterlySales.reduce((sum, sale) => sum + sale, 0);
+
+    // Step 3: Calculate average quarterly sales
+    const avgQuarterlySales = totalSales / 4;
+
+    // Step 4: Calculate the forecast for the next year based on average growth
+    const forecastedSales = quarterlySales[3] * (1 + avgGrowthRate / 100);
+    
+    // Step 5: Create projected quarterly sales for next year
+    const projectedQuarters = [];
+    let currentQuarterSales = forecastedSales;
+    for (let i = 0; i < 4; i++) {
+        currentQuarterSales *= (1 + avgGrowthRate / 100);  // Apply growth rate
+        projectedQuarters.push(currentQuarterSales);
+    }
+
+    // Step 6: Calculate total forecasted sales for next year
+    const totalForecastedSales = projectedQuarters.reduce((sum, sale) => sum + sale, 0);
+
+    // Step 7: Send the result to the frontend
+    res.json({
+        avgGrowthRate: avgGrowthRate.toFixed(2),
+        totalSales: totalSales.toFixed(2),
+        avgQuarterlySales: avgQuarterlySales.toFixed(2),
+        forecastedSales: forecastedSales.toFixed(2),
+        projectedQuarters: projectedQuarters.map(q => q.toFixed(2)),
+        totalForecastedSales: totalForecastedSales.toFixed(2) // Add this line
+    });
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
