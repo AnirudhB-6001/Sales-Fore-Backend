@@ -3,9 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
-
-// Update PORT to use an environment variable
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -56,7 +54,7 @@ app.post('/api/advanced-forecast', (req, res) => {
     });
 });
 
-// Update this section to make it ready for deployment
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
